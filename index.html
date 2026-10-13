@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Customer Context Lab</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Archivo:wght@400;500;600&display=swap" />
+  <meta name="description" content="A working prototype exploring what a retailer should remember about its customers. All data is synthetic." />
+  <style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+:root {
+  --paper: #f3f4ee;
+  --panel: #fdfdfa;
+  --ink: #202721;
+  --muted: #5c665e;
+  --line: #d8ddd1;
+  --line-soft: #e6e9df;
+  --pine: #2f6448;
+  --pine-deep: #214a35;
+  --mark: #f3ec88;
+  --good: #2f6448;
+  --warn: #8a5a12;
+  --bad: #9a3b2e;
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.55; }
+::selection { background: var(--mark); color: var(--ink); }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--pine); }
+:focus-visible { outline: 2px solid var(--pine); outline-offset: 2px; }
+
+.shell { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+.sidebar { position: sticky; top: 0; height: 100vh; background: var(--paper); border-right: 1px solid var(--line); padding: 30px 26px 22px; display: flex; flex-direction: column; overflow-y: auto; }
+.brand { padding: 0 0 20px; border-bottom: 1px solid var(--line); }
+.brand-mark { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 15px; color: var(--pine-deep); background: linear-gradient(180deg, transparent 52%, var(--mark) 52%, var(--mark) 92%, transparent 92%); display: inline-block; padding: 0 3px; margin-bottom: 10px; width: auto; height: auto; border-radius: 0; }
+.brand-title { font-family: var(--serif); font-weight: 600; font-size: 21px; letter-spacing: -.2px; line-height: 1.15; }
+.brand-sub { color: var(--muted); font-size: 12.5px; margin-top: 6px; line-height: 1.45; }
+#nav { padding-top: 18px; display: block; }
+.nav-btn { border: 0; background: transparent; color: var(--muted); text-align: left; width: 100%; padding: 7px 2px; display: flex; gap: 12px; align-items: baseline; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; }
+.nav-btn:last-child { border-bottom: 0; }
+.nav-btn:hover { color: var(--ink); }
+.nav-btn.active { color: var(--ink); font-weight: 600; }
+.nav-btn.locked { color: #9aa49a; }
+.nav-btn.locked .nav-index { color: #9aa49a; }
+.soon { margin-left: auto; font-size: 10px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; color: var(--muted); font-style: normal; }
+.nav-btn.active span:nth-child(2) { background: linear-gradient(180deg, transparent 58%, var(--mark) 58%, var(--mark) 94%, transparent 94%); }
+.nav-index { font-family: var(--serif); font-style: italic; font-size: 12px; color: var(--pine); width: 20px; flex: none; background: none; height: auto; border-radius: 0; display: inline; }
+.sidebar-foot { margin-top: auto; border-top: 1px solid var(--line); padding: 16px 2px 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.sidebar-foot p { margin: 10px 0 0; }
+
+.main { min-width: 0; background: var(--panel); border-left: 1px solid #fff; }
+.topbar { position: sticky; top: 0; z-index: 10; background: rgba(253,253,250,.95); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); padding: 26px 42px 20px; display: flex; justify-content: space-between; gap: 24px; align-items: flex-end; }
+.topbar h1 { margin: 6px 0 0; font-family: var(--serif); font-weight: 600; font-size: 29px; letter-spacing: -.3px; line-height: 1.12; max-width: 640px; }
+.eyebrow { color: var(--pine); font-size: 13px; font-weight: 500; }
+.eyebrow::before { content: ""; display: inline-block; width: 18px; height: 1px; background: var(--pine); vertical-align: 4px; margin-right: 8px; }
+.top-actions { display: flex; gap: 8px; flex: none; }
+.primary, .ghost, .secondary, .danger-lite { border-radius: 3px; padding: 8px 14px; border: 1px solid transparent; font-weight: 500; font-size: 13.5px; }
+.primary { background: var(--pine); color: #f6f8f3; }
+.primary:hover { background: var(--pine-deep); }
+.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+.ghost:hover { border-color: var(--pine); }
+.secondary { background: transparent; color: var(--pine); border-color: var(--line); }
+.secondary:hover { border-color: var(--pine); }
+.danger-lite { background: transparent; color: var(--bad); border-color: var(--line); }
+#content { padding: 30px 42px 60px; max-width: 1180px; }
+
+.grid { display: grid; gap: 14px; }
+.grid-2 { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.grid-3 { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.grid-4 { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 3px; padding: 18px 18px 16px; }
+.card h2, .card h3, .card h4 { margin: 0 0 8px; font-family: var(--serif); font-weight: 600; letter-spacing: -.1px; }
+.card h2 { font-size: 21px; line-height: 1.25; }
+.card h3 { font-size: 16.5px; line-height: 1.3; }
+.card h4 { font-size: 14px; }
+.card p { color: var(--muted); margin: 0; font-size: 13.5px; line-height: 1.55; }
+.card .eyebrow { margin-bottom: 10px; }
+
+.hero { display: grid; grid-template-columns: 1.5fr .9fr; gap: 14px; margin-bottom: 14px; }
+.hero .statement { padding: 26px 28px; }
+.hero-quote { font-family: var(--serif); font-weight: 500; font-size: 30px; line-height: 1.22; letter-spacing: -.3px; margin: 6px 0 14px; max-width: 760px; }
+.hero-quote strong { font-weight: 500; font-style: italic; color: inherit; background: linear-gradient(180deg, transparent 56%, var(--mark) 56%, var(--mark) 94%, transparent 94%); padding: 0 2px; }
+.promise { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; font-size: 11.5px; font-weight: 500; color: var(--muted); background: transparent; }
+.pill-neutral { border-color: var(--line); color: var(--muted); }
+.pill-blue { color: var(--pine); border-color: #c4d4c6; }
+.pill-green { color: var(--good); border-color: #bcd2c2; background: #eef4ec; }
+.pill-amber { color: var(--warn); border-color: #ddc79e; background: #f8f1e2; }
+.pill-red { color: var(--bad); border-color: #ddb3a9; background: #f8ece8; }
+.pill-gray { color: var(--muted); border-color: var(--line); }
+
+.metric-big { font-family: var(--serif); font-size: 32px; font-weight: 600; letter-spacing: -.5px; }
+.metric-label { color: var(--muted); font-size: 12.5px; margin-top: 4px; line-height: 1.45; }
+.kpi { display: flex; flex-direction: column; justify-content: space-between; min-height: 118px; }
+.section-label { margin: 28px 0 10px; font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink); font-weight: 500; }
+.section-label::after { content: ""; display: block; height: 1px; background: var(--line); margin-top: 8px; }
+
+.list { display: grid; gap: 10px; margin-top: 10px; }
+.list-item { display: grid; grid-template-columns: 8px 1fr; gap: 10px; align-items: start; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pine); margin-top: 7px; }
+.list-item strong { display: block; font-size: 13.5px; margin-bottom: 2px; }
+.list-item span { color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+
+.tree { display: grid; gap: 12px; }
+.tree-root { border: 1px solid var(--pine); background: #eef3ec; border-radius: 3px; padding: 15px 16px; font-size: 14px; }
+.tree-branches { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.tree-node { border: 1px solid var(--line); border-radius: 3px; background: var(--panel); padding: 14px; }
+.tree-node .node-title { font-family: var(--serif); font-weight: 600; font-size: 14.5px; margin-bottom: 7px; }
+.tree-node ul { padding-left: 17px; margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.55; }
+.hypothesis { border-left: 3px solid var(--mark); padding-left: 13px; border-radius: 0 3px 3px 0; }
+.hypothesis strong { font-size: 13.5px; }
+.hypothesis p { margin-top: 5px; font-size: 12.5px; }
+.strategy-pillar { min-height: 170px; }
+.strategy-num { font-family: var(--serif); font-style: italic; font-size: 19px; color: var(--pine); margin-bottom: 10px; width: auto; height: auto; background: none; display: block; }
+
+.customer-layout { display: grid; grid-template-columns: .85fr 1.4fr; gap: 14px; }
+.person { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.avatar { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #e7ecdf; color: var(--pine-deep); font-family: var(--serif); font-weight: 600; }
+.person h3 { margin: 0; }
+.person p { font-size: 12.5px; }
+.timeline { position: relative; padding-left: 20px; }
+.timeline:before { content: ""; position: absolute; left: 6px; top: 7px; bottom: 7px; width: 1px; background: var(--line); }
+.timeline-item { position: relative; padding: 0 0 15px 14px; }
+.timeline-item:before { content: ""; position: absolute; left: -17px; top: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--panel); border: 2px solid var(--pine); }
+.timeline-item .meta { color: var(--muted); font-size: 11px; font-weight: 600; }
+.timeline-item .quote { margin-top: 3px; font-size: 13.5px; line-height: 1.5; font-family: var(--serif); }
+
+.demo-box { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 14px; }
+textarea { width: 100%; min-height: 90px; resize: vertical; border: 1px solid var(--line); border-radius: 3px; padding: 11px; color: var(--ink); background: #fbfcf7; font-family: var(--serif); font-size: 14.5px; }
+textarea:focus { outline: 2px solid var(--pine); outline-offset: 1px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+
+.table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 3px; background: var(--panel); }
+table { width: 100%; border-collapse: collapse; min-width: 880px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+th { position: sticky; top: 0; background: #f6f7f1; color: var(--muted); font-size: 12px; font-weight: 600; }
+td { font-size: 12.5px; }
+tr:last-child td { border-bottom: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 11.5px; }
+.score { width: 44px; height: 28px; border-radius: 3px; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+.score.good { background: #e9f1e7; color: var(--good); }
+.score.warn { background: #f6eedb; color: var(--warn); }
+.score.bad { background: #f6e7e2; color: var(--bad); }
+
+.channel-tabs { display: flex; gap: 0; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 3px; width: fit-content; overflow: hidden; background: var(--panel); }
+.channel-btn { border: 0; border-right: 1px solid var(--line); background: transparent; padding: 8px 16px; font-size: 13px; color: var(--muted); }
+.channel-btn:last-child { border-right: 0; }
+.channel-btn.active { background: var(--pine); color: #f6f8f3; }
+.activation-preview { min-height: 240px; }
+.rec-card { border: 1px solid var(--line-soft); border-left: 3px solid var(--mark); border-radius: 0 3px 3px 0; padding: 10px 12px; margin-top: 8px; background: #fdfdf8; }
+.rec-card strong { font-size: 13px; }
+.notice { border: 1px solid var(--line); border-left: 3px solid var(--pine); border-radius: 0 3px 3px 0; background: #f2f5ee; padding: 12px 14px; font-size: 13px; line-height: 1.55; color: var(--ink); }
+.preview-shell { border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.preview-head { background: #f6f7f1; border-bottom: 1px solid var(--line); padding: 8px 12px; font-size: 11.5px; color: var(--muted); }
+.preview-body { padding: 14px; }
+.preview-body h3 { margin: 0 0 6px; font-family: var(--serif); font-size: 15.5px; }
+.preview-body p { color: var(--muted); font-size: 13px; margin: 0 0 4px; }
+
+.arch { display: grid; gap: 6px; }
+.arch-cap { font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--pine-deep); margin: 6px 0 2px; }
+.arch-row { display: grid; grid-template-columns: repeat(6,1fr); gap: 6px; }
+.arch-box { border: 1px solid var(--line); border-radius: 3px; background: var(--panel); padding: 9px 8px; font-size: 11.5px; text-align: center; color: var(--ink); }
+.arch-box.core { background: #eef3ec; border-color: #c2d2c4; }
+.arch-arrow { text-align: center; color: var(--pine); font-size: 13px; line-height: 1; }
+.code { background: #232a24; color: #e9eee6; border-radius: 3px; padding: 14px; font-family: "SFMono-Regular", ui-monospace, Consolas, monospace; font-size: 11.5px; line-height: 1.6; white-space: pre; overflow: auto; max-height: 420px; }
+
+.roadmap { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+.horizon { border: 1px solid var(--line); border-radius: 3px; background: var(--panel); padding: 16px; }
+.h-num { font-family: var(--serif); font-style: italic; color: var(--pine); font-size: 14px; margin-bottom: 6px; }
+.horizon h3 { margin: 0 0 8px; font-family: var(--serif); font-size: 16px; }
+.horizon ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+.horizon .outcome { margin-top: 10px; border-top: 1px solid var(--line-soft); padding-top: 9px; font-size: 12px; color: var(--ink); }
+.okr ul { margin: 6px 0 0; padding-left: 16px; color: var(--muted); font-size: 13px; line-height: 1.65; }
+
+.decision { background: var(--panel); border: 1px solid var(--line); border-radius: 3px; padding: 16px 18px; }
+.decision h3 { margin: 0 0 10px; font-family: var(--serif); font-size: 16.5px; }
+.decision-row { display: grid; grid-template-columns: 76px 1fr; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line-soft); font-size: 13px; }
+.decision-row .label { color: var(--pine); font-size: 12px; font-weight: 600; padding-top: 1px; }
+
+.icon-btn { border: 1px solid var(--line); background: var(--panel); border-radius: 3px; width: 30px; height: 30px; }
+dialog { border: 1px solid var(--line); border-radius: 4px; padding: 0; max-width: 720px; width: 92%; background: var(--panel); color: var(--ink); }
+dialog::backdrop { background: rgba(32,39,33,.4); }
+.dialog-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px 22px 12px; border-bottom: 1px solid var(--line); }
+.dialog-head h2 { margin: 4px 0 0; font-family: var(--serif); font-size: 21px; }
+.dialog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 18px 22px 22px; }
+.dialog-grid h3 { margin: 0 0 5px; font-family: var(--serif); font-size: 14.5px; }
+.dialog-grid p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+
+@media (max-width: 1050px) {
+  .shell { grid-template-columns: 230px 1fr; }
+  .grid-4 { grid-template-columns: repeat(2,1fr); }
+  .roadmap { grid-template-columns: repeat(2,1fr); }
+  .tree-branches { grid-template-columns: 1fr; }
+  .arch-row { grid-template-columns: repeat(3,1fr); }
+  .topbar, #content { padding-left: 26px; padding-right: 26px; }
+}
+@media (max-width: 760px) {
+  .shell { display: block; }
+  .sidebar { position: relative; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+  #nav { display: grid; grid-template-columns: repeat(2,1fr); column-gap: 18px; }
+  .main { width: 100%; border-left: 0; }
+  .topbar { position: relative; padding: 18px; align-items: flex-start; flex-direction: column; gap: 10px; }
+  .topbar h1 { font-size: 24px; }
+  .top-actions { display: none; }
+  #content { padding: 18px 18px 48px; }
+  .hero, .grid-2, .grid-3, .grid-4, .customer-layout, .roadmap { grid-template-columns: 1fr; }
+  .arch-row { grid-template-columns: repeat(2,1fr); }
+  .dialog-grid { grid-template-columns: 1fr; }
+  .hero-quote { font-size: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">a working prototype</div>
+        <div>
+          <div class="brand-title">Customer Context Lab</div>
+          <div class="brand-sub">Getting customer data AI-ready, without losing customer trust</div>
+        </div>
+      </div>
+      <nav id="nav"></nav>
+      <div class="sidebar-foot">
+        <span class="pill pill-neutral">Synthetic data only</span>
+        <p>Built to think through discovery, platform strategy, AI readiness and responsible personalisation. Synthetic data throughout.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow" id="sectionEyebrow">Overview</div>
+          <h1 id="sectionTitle">A reusable context layer for better customer experiences</h1>
+        </div>
+        <div class="top-actions">
+          <button class="ghost" id="resetDemo">Reset demo</button>
+          <button class="primary" id="openBrief">Product brief</button>
+        </div>
+      </header>
+
+      <section id="content"></section>
+    </main>
+  </div>
+
+  <dialog id="briefDialog">
+    <div class="dialog-head">
+      <div>
+        <div class="eyebrow">The one-minute brief</div>
+        <h2>Customer Context Platform</h2>
+      </div>
+      <button class="icon-btn" id="closeBrief" aria-label="Close">×</button>
+    </div>
+    <div class="dialog-grid">
+      <article><h3>Problem</h3><p>Customer data exists across many systems, but product teams still reconstruct context independently. That creates duplicated logic, inconsistent personalisation and avoidable trust risk.</p></article>
+      <article><h3>Vision</h3><p>Make every authorised customer interaction more useful by giving products access to trusted, relevant and explainable context in real time.</p></article>
+      <article><h3>Platform promise</h3><p>Collect context once, govern it properly, and let every team reuse it safely.</p></article>
+      <article><h3>MVP</h3><p>Explicit preferences, recent intent, provenance, freshness, consent policy, customer correction and a Context API serving two activation journeys.</p></article>
+      <article><h3>AI readiness</h3><p>AI is used only where context quality, provenance, confidence, freshness and policy controls make activation defensible.</p></article>
+      <article><h3>North Star</h3><p>% of eligible customer interactions improved by trusted reusable context.</p></article>
+    </div>
+  </dialog>
+
+  <script>
+"use strict";
+// Series release control: list the chapter keys that are live.
+// To unlock the next chapter, add its key here and republish. Locked chapters
+// stay visible in the contents as "soon" and show a teaser instead of content.
+const UNLOCKED = ["overview", "discover", "strategy", "customer", "context", "ai", "activate", "platform", "roadmap", "measure", "adoption", "decisions"];
+const navItems = [
+    { key: "overview", label: "Overview" },
+    { key: "discover", label: "Discover" },
+    { key: "strategy", label: "Strategy" },
+    { key: "customer", label: "Customer" },
+    { key: "context", label: "Context model" },
+    { key: "ai", label: "AI readiness" },
+    { key: "activate", label: "Activate" },
+    { key: "platform", label: "Platform" },
+    { key: "roadmap", label: "Roadmap" },
+    { key: "measure", label: "Measure" },
+    { key: "adoption", label: "Adoption & risk" },
+    { key: "decisions", label: "Product decisions" }
+];
+const headings = {
+    overview: { eyebrow: "Overview", title: "Why customer context needs a product of its own" },
+    discover: { eyebrow: "Discovery", title: "Start with the problem, not the platform" },
+    strategy: { eyebrow: "Vision and strategy", title: "Make context something every team can reuse" },
+    customer: { eyebrow: "A worked example", title: "How raw interactions become candidate context" },
+    context: { eyebrow: "The context model", title: "Structure context so other teams can trust it" },
+    ai: { eyebrow: "AI readiness", title: "Decide what AI may infer, remember and activate" },
+    activate: { eyebrow: "Activation", title: "The right context, for the right experience, for a declared purpose" },
+    platform: { eyebrow: "Platform design", title: "A context service built for reuse and governance" },
+    roadmap: { eyebrow: "Roadmap and prioritisation", title: "Prove the foundation before scaling the intelligence" },
+    measure: { eyebrow: "OKRs and measurement", title: "Measure trust, adoption and value rather than memory volume" },
+    adoption: { eyebrow: "Adoption, positioning and risk", title: "A platform only exists when other teams build on it" },
+    decisions: { eyebrow: "Product judgement", title: "The calls I would make, and what they cost" }
+};
+const baseContext = [
+    {
+        id: "ctx-1",
+        type: "Preference",
+        subject: "Customer",
+        value: "Vegetarian",
+        source: "Assistant conversation",
+        explicit: true,
+        confidence: 1,
+        freshnessDays: 2,
+        durable: true,
+        consent: "Allowed",
+        sensitivity: "Low",
+        expiry: "No automatic expiry",
+        channels: ["Web", "App", "Assistant", "Store", "CRM"],
+        editable: true,
+        explanation: "The customer explicitly stated this preference in an authenticated conversation."
+    },
+    {
+        id: "ctx-2",
+        type: "Intent",
+        subject: "Customer",
+        value: "Planning packed lunches this week",
+        source: "Assistant conversation",
+        explicit: true,
+        confidence: 0.98,
+        freshnessDays: 1,
+        durable: false,
+        consent: "Allowed",
+        sensitivity: "Low",
+        expiry: "7 days",
+        channels: ["Web", "App", "Assistant"],
+        editable: true,
+        explanation: "Short-term intent stated directly; useful for near-term experiences but should decay quickly."
+    },
+    {
+        id: "ctx-3",
+        type: "Behaviour",
+        subject: "Customer",
+        value: "Often shops Friday evening",
+        source: "Transaction pattern",
+        explicit: false,
+        confidence: 0.87,
+        freshnessDays: 10,
+        durable: false,
+        consent: "Allowed",
+        sensitivity: "Low",
+        expiry: "45 days unless refreshed",
+        channels: ["Web", "App", "Assistant"],
+        editable: false,
+        explanation: "Observed behavioural pattern; useful as a soft signal rather than a permanent truth."
+    },
+    {
+        id: "ctx-4",
+        type: "Inference",
+        subject: "Customer",
+        value: "May be price conscious",
+        source: "Behavioural inference",
+        explicit: false,
+        confidence: 0.61,
+        freshnessDays: 12,
+        durable: false,
+        consent: "Confirm",
+        sensitivity: "Medium",
+        expiry: "14 days",
+        channels: ["Assistant"],
+        editable: true,
+        explanation: "Weak inference from offer usage and browsing behaviour; should not become durable context without confirmation."
+    },
+    {
+        id: "ctx-5",
+        type: "Household",
+        subject: "Daughter",
+        value: "Vegetarian",
+        source: "Assistant conversation",
+        explicit: true,
+        confidence: 0.95,
+        freshnessDays: 2,
+        durable: true,
+        consent: "Confirm",
+        sensitivity: "Medium",
+        expiry: "Review after 180 days",
+        channels: ["Assistant", "App"],
+        editable: true,
+        explanation: "The customer stated a preference about another household member; persistence should be scoped and confirmed."
+    },
+    {
+        id: "ctx-6",
+        type: "Constraint",
+        subject: "Customer",
+        value: "Do not recommend alcohol",
+        source: "Customer preference centre",
+        explicit: true,
+        confidence: 1,
+        freshnessDays: 4,
+        durable: true,
+        consent: "Allowed",
+        sensitivity: "Low",
+        expiry: "No automatic expiry",
+        channels: ["Web", "App", "Assistant", "CRM"],
+        editable: true,
+        explanation: "Explicit negative preference; should be respected consistently across eligible channels."
+    }
+];
+let contextItems = JSON.parse(JSON.stringify(baseContext));
+let currentPage = "overview";
+let currentChannel = "Web";
+const $ = (sel) => {
+    const node = document.querySelector(sel);
+    if (!node)
+        throw new Error(`Missing element: ${sel}`);
+    return node;
+};
+function escapeHtml(value) {
+    return value.replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c] || c));
+}
+function pill(text, cls = "pill-blue") {
+    return `<span class="pill ${cls}">${escapeHtml(text)}</span>`;
+}
+function statusFor(item) {
+    if (item.sensitivity === "High" || item.consent === "Restricted")
+        return "DO NOT ACTIVATE";
+    if (!item.explicit && item.confidence < 0.55)
+        return "DO NOT PERSIST";
+    if (item.consent === "Confirm")
+        return "NEEDS CONFIRMATION";
+    if (!item.explicit && (item.confidence < 0.75 || item.freshnessDays > 30))
+        return "USE WITH CAUTION";
+    return "READY";
+}
+function readinessScore(item) {
+    let score = 0;
+    score += item.source ? 18 : 0;
+    score += item.explicit ? 20 : Math.round(item.confidence * 15);
+    score += Math.round(item.confidence * 22);
+    score += item.freshnessDays <= 7 ? 15 : item.freshnessDays <= 30 ? 9 : 4;
+    score += item.consent === "Allowed" ? 15 : item.consent === "Confirm" ? 7 : 0;
+    score += item.editable ? 10 : 5;
+    if (item.sensitivity === "High")
+        score -= 25;
+    if (item.sensitivity === "Medium")
+        score -= 6;
+    return Math.max(0, Math.min(100, score));
+}
+function scoreClass(score) {
+    return score >= 80 ? "good" : score >= 60 ? "warn" : "bad";
+}
+function statusPill(status) {
+    const cls = status === "READY" ? "pill-green" : status === "USE WITH CAUTION" ? "pill-amber" : status === "NEEDS CONFIRMATION" ? "pill-blue" : "pill-red";
+    return pill(status, cls);
+}
+function renderNav() {
+    const nav = $("#nav");
+    nav.innerHTML = navItems.map((item, i) => {
+        const locked = !UNLOCKED.includes(item.key);
+        return `
+    <button class="nav-btn ${currentPage === item.key ? "active" : ""} ${locked ? "locked" : ""}" data-page="${item.key}">
+      <span class="nav-index">${String(i + 1).padStart(2, "0")}</span>
+      <span>${item.label}</span>${locked ? '<span class="soon">soon</span>' : ''}
+    </button>`;
+    }).join("");
+    nav.querySelectorAll(".nav-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            currentPage = btn.dataset.page;
+            render();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    });
+}
+function overview() {
+    return `
+    <div class="hero">
+      <article class="card statement">
+        <div class="eyebrow">The starting point</div>
+        <div class="hero-quote">Knowing a lot about a customer is easy. Knowing <strong>what to remember</strong> is the hard part.</div>
+        <p>The product work is deciding what counts as useful context, how much to trust it, how long it stays relevant, whether it may be used for a given purpose, and how other products consume it consistently.</p>
+        <div class="promise">
+          ${pill("Collected once")}${pill("Governed by policy")}${pill("Reusable by any team")}${pill("Correctable by the customer")}
+        </div>
+      </article>
+      <article class="card kpi">
+        <div>
+          <div class="eyebrow">North star</div>
+          <div class="metric-big">Context, put to work</div>
+          <div class="metric-label">% of eligible customer interactions improved by trusted reusable context</div>
+        </div>
+        <div>${pill("Platform adoption", "pill-gray")} ${pill("Trust", "pill-gray")} ${pill("Relevance", "pill-gray")}</div>
+      </article>
+    </div>
+
+    <div class="grid grid-4">
+      <article class="card kpi"><div><div class="eyebrow">For customers</div><h3>Stop repeating yourself</h3><p>Preferences and recent intent disappear between channels, forcing customers to restate useful context.</p></div></article>
+      <article class="card kpi"><div><div class="eyebrow">For product teams</div><h3>Stop rebuilding customer understanding</h3><p>Each channel creates bespoke personalisation logic and inconsistent interpretations of the same customer.</p></div></article>
+      <article class="card kpi"><div><div class="eyebrow">For the platform</div><h3>Make it reusable</h3><p>What the organisation remembers needs a shared schema, policy model, API and quality controls before it can scale safely.</p></div></article>
+      <article class="card kpi"><div><div class="eyebrow">For AI</div><h3>Earn the right to infer</h3><p>AI can extract and infer context, but only when provenance, confidence, freshness and governance make activation defensible.</p></div></article>
+    </div>
+
+    <div class="section-label">Strategic product principles</div>
+    <div class="grid grid-3">
+      <article class="card"><h3>Context needs an owner</h3><p>Somebody has to be accountable for its consumers, service levels, data contracts, quality, governance and roadmap, the same as any product.</p></article>
+      <article class="card"><h3>Explicit beats inferred</h3><p>Start with what customers choose to tell us. Add inference only where it earns clear extra value and can be governed.</p></article>
+      <article class="card"><h3>Prove value before adding intelligence</h3><p>Show that reusable context improves real journeys before spending heavily on richer models and autonomous decisioning.</p></article>
+    </div>
+  `;
+}
+function discover() {
+    return `
+    <div class="grid grid-2">
+      <article class="card">
+        <div class="eyebrow">The outcome discovery serves</div>
+        <h2>Increase the usefulness of customer interactions without damaging trust</h2>
+        <p>Discovery asks where reusable context removes friction, improves relevance and creates value, and where remembering or inferring more would create disproportionate risk.</p>
+      </article>
+      <article class="card">
+        <div class="eyebrow">Questions worth answering first</div>
+        <div class="list">
+          ${[
+        ["Customer", "Which preferences or intentions do customers repeatedly restate? When does remembering feel useful versus intrusive?"],
+        ["Product teams", "Where are teams independently recreating customer understanding today? What integration cost blocks adoption?"],
+        ["Data", "Which signals have reliable identity, provenance, freshness and quality?"],
+        ["Privacy", "Which context requires explicit purpose, confirmation, retention limits or must not be persisted?"],
+        ["Value", "Which journeys are measurable enough to prove incremental relevance rather than correlation?"]
+    ].map(([a, b]) => `<div class="list-item"><span class="dot"></span><div><strong>${a}</strong><span>${b}</span></div></div>`).join("")}
+        </div>
+      </article>
+    </div>
+
+    <div class="section-label">Opportunity solution tree</div>
+    <div class="tree">
+      <div class="tree-root"><strong>Outcome:</strong> Increase the share of eligible interactions improved by trusted context while maintaining customer trust.</div>
+      <div class="tree-branches">
+        <div class="tree-node"><div class="node-title">Opportunity 1: repeated preferences</div><ul><li>Customers restate dietary or communication preferences</li><li>Channels do not share durable explicit context</li><li>Correction is inconsistent</li></ul></div>
+        <div class="tree-node"><div class="node-title">Opportunity 2: lost short-term intent</div><ul><li>Current missions disappear between sessions</li><li>Historical behaviour dominates recommendations</li><li>Intent decays quickly if not time-bound</li></ul></div>
+        <div class="tree-node"><div class="node-title">Opportunity 3: fragmented activation</div><ul><li>Teams create bespoke customer features</li><li>Different confidence/policy rules emerge</li><li>Integration cost slows experimentation</li></ul></div>
+      </div>
+      <div class="tree-branches">
+        <div class="tree-node"><div class="node-title">Solution direction: trusted memory</div><ul><li>Explicit preference store</li><li>Provenance + correction</li><li>Freshness/expiry policies</li></ul></div>
+        <div class="tree-node"><div class="node-title">Solution direction: context intelligence</div><ul><li>Intent extraction</li><li>Confidence scoring</li><li>Confirmation for durable inferences</li></ul></div>
+        <div class="tree-node"><div class="node-title">Solution direction: a context platform</div><ul><li>Context API + events</li><li>Policy-aware retrieval</li><li>Reusable integration patterns</li></ul></div>
+      </div>
+    </div>
+
+    <div class="section-label">Testable hypotheses</div>
+    <div class="grid grid-2">
+      ${[
+        ["H1", "Explicit preferences will produce higher-trust personalisation than inferred preferences.", "Measure correction rate, opt-out rate and experience relevance."],
+        ["H2", "Recent intent will outperform historical affinity in short-horizon journeys.", "Run controlled experiments on intent-aware recommendations versus history-only baselines."],
+        ["H3", "Product teams will adopt shared context when integration is easier than building bespoke customer logic.", "Track time-to-first-context and number of reusable consumers."],
+        ["H4", "Transparency will reduce the trust cost of personalisation.", "Measure explainability views, corrections, complaints and continued use after context disclosure."]
+    ].map(([id, h, m]) => `<article class="card hypothesis"><strong>${id}: ${h}</strong><p>${m}</p></article>`).join("")}
+    </div>
+  `;
+}
+function strategy() {
+    return `
+    <div class="hero">
+      <article class="card statement">
+        <div class="eyebrow">Vision</div>
+        <div class="hero-quote">Make every authorised interaction more useful, through context that is <strong>trusted and explainable</strong>.</div>
+        <p>The platform is an internal product serving customer-facing teams. Its job is not to personalise every experience itself; it makes high-quality context easy for other products to consume safely.</p>
+      </article>
+      <article class="card">
+        <div class="eyebrow">The promise to consuming teams</div>
+        <h3>Collect context once, govern it properly, and let every team reuse it.</h3>
+        <p>One promise that holds the strategy together across data, AI, APIs, governance and adoption.</p>
+      </article>
+    </div>
+
+    <div class="grid grid-4">
+      ${[
+        ["01", "Create trusted context", "Standard schema for preferences, intent, behaviour and inference with provenance, confidence, freshness and expiry."],
+        ["02", "Make it reusable", "Context API, events and integration patterns that let product teams consume context without recreating customer logic."],
+        ["03", "Activate it safely", "Policy-aware retrieval based on purpose, consent, sensitivity, confidence and channel."],
+        ["04", "Build a learning system", "Use experiments, corrections and outcomes to improve context quality and decide what deserves to scale."]
+    ].map(([n, t, d]) => `<article class="card strategy-pillar"><div class="strategy-num">${n}</div><h3>${t}</h3><p>${d}</p></article>`).join("")}
+    </div>
+
+    <div class="section-label">Platform consumers and value exchange</div>
+    <div class="grid grid-3">
+      <article class="card"><h3>Web & App teams</h3><p><strong>Need:</strong> fast access to current preferences and intent.<br><br><strong>Value exchange:</strong> less bespoke data stitching; faster experimentation; consistent rules.</p></article>
+      <article class="card"><h3>Assistant & Service teams</h3><p><strong>Need:</strong> conversational memory with explainability and correction.<br><br><strong>Value exchange:</strong> less repetition; more continuity; policy-aware memory.</p></article>
+      <article class="card"><h3>Recommendation & Data Science</h3><p><strong>Need:</strong> quality context features with provenance and freshness.<br><br><strong>Value exchange:</strong> better inputs, cleaner evaluation and clear activation constraints.</p></article>
+    </div>
+  `;
+}
+function customer() {
+    return `
+    <div class="customer-layout">
+      <article class="card">
+        <div class="person">
+          <div class="avatar">AM</div>
+          <div><h3>Alex Morgan</h3><p>Synthetic member, authenticated, household of 3</p></div>
+        </div>
+        <div class="list">
+          <div class="list-item"><span class="dot"></span><div><strong>Known explicit preference</strong><span>Vegetarian</span></div></div>
+          <div class="list-item"><span class="dot"></span><div><strong>Current mission</strong><span>Packed lunches this week</span></div></div>
+          <div class="list-item"><span class="dot"></span><div><strong>Observed behaviour</strong><span>Frequently shops Friday evening</span></div></div>
+          <div class="list-item"><span class="dot"></span><div><strong>Negative preference</strong><span>Do not recommend alcohol</span></div></div>
+        </div>
+        <div class="notice" style="margin-top:14px">Synthetic scenario only. No real retailer, membership or customer data is used.</div>
+      </article>
+
+      <article class="card">
+        <div class="eyebrow">What the retailer saw this week</div>
+        <div class="timeline" style="margin-top:14px">
+          <div class="timeline-item"><div class="meta">App, 10 Oct</div><div class="quote">Saved three vegetarian lunchbox recipes.</div></div>
+          <div class="timeline-item"><div class="meta">Assistant, 11 Oct</div><div class="quote">“I’m vegetarian and I’m looking for inexpensive packed-lunch ideas this week.”</div></div>
+          <div class="timeline-item"><div class="meta">Preference centre, 11 Oct</div><div class="quote">Set “Do not recommend alcohol”.</div></div>
+          <div class="timeline-item"><div class="meta">Assistant, 12 Oct</div><div class="quote">“My daughter is vegetarian too. Her birthday is this Saturday.”</div></div>
+        </div>
+
+        <div class="demo-box">
+          <div class="eyebrow">Try it: type something a customer might say</div>
+          <p class="small muted" style="margin:6px 0 8px">A rule-based demo stands in for an LLM so the prototype works offline. The interesting product decision is what happens after extraction anyway.</p>
+          <textarea id="utterance">I'm hosting my daughter's birthday this Saturday. She's vegetarian and loves strawberries. Please don't suggest alcohol.</textarea>
+          <div class="controls"><button class="primary" id="extractBtn">Extract candidate context</button><button class="ghost" id="clearExtract">Clear</button></div>
+          <div id="extractResults" class="list" style="margin-top:12px"></div>
+        </div>
+      </article>
+    </div>
+  `;
+}
+function contextPage() {
+    const rows = contextItems.map(i => `
+    <tr>
+      <td>${pill(i.type, "pill-gray")}</td>
+      <td><strong>${escapeHtml(i.value)}</strong><div class="small muted">${escapeHtml(i.subject)}</div></td>
+      <td>${escapeHtml(i.source)}<div class="small muted">${i.explicit ? "Explicit" : "Inferred / observed"}</div></td>
+      <td>${Math.round(i.confidence * 100)}%</td>
+      <td>${i.freshnessDays}d</td>
+      <td>${escapeHtml(i.consent)}</td>
+      <td>${escapeHtml(i.expiry)}</td>
+      <td>${i.channels.map(c => pill(c, "pill-blue")).join(" ")}</td>
+    </tr>`).join("");
+    return `
+    <div class="grid grid-3">
+      <article class="card"><div class="eyebrow">Design rule</div><h3>Context is typed</h3><p>Preference, intent, behaviour, household context, inference and constraint are treated differently because they have different durability and risk.</p></article>
+      <article class="card"><div class="eyebrow">Design rule</div><h3>Context has provenance</h3><p>Every item carries a source and whether it was explicit, observed or inferred. Downstream products can make policy-aware decisions.</p></article>
+      <article class="card"><div class="eyebrow">Design rule</div><h3>Context decays</h3><p>Short-term intent expires quickly. Behavioural signals refresh. Durable preferences persist only where appropriate and correctable.</p></article>
+    </div>
+    <div class="section-label">Synthetic context store</div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Type</th><th>Context</th><th>Source</th><th>Confidence</th><th>Freshness</th><th>Policy</th><th>Expiry</th><th>Eligible channels</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>
+    <div class="notice" style="margin-top:12px"><strong>Where the confidence numbers come from:</strong> in this prototype they are illustrative, set to show the pattern rather than measured. Explicit statements sit near 100%, observed behavioural patterns in the 80s, and single-signal inferences lower still. In production each number would come from the extraction or inference model itself, calibrated against how often customers correct that type of memory.</div>
+  `;
+}
+function aiPage() {
+    const rows = contextItems.map(i => {
+        const s = readinessScore(i);
+        const status = statusFor(i);
+        return `<tr>
+      <td><strong>${escapeHtml(i.value)}</strong><div class="small muted">${escapeHtml(i.type)}, ${i.explicit ? "explicit" : "not explicit"}</div></td>
+      <td><div class="score ${scoreClass(s)}">${s}</div></td>
+      <td>${statusPill(status)}</td>
+      <td>${Math.round(i.confidence * 100)}%</td>
+      <td>${escapeHtml(i.consent)}</td>
+      <td>${escapeHtml(i.sensitivity)}</td>
+      <td>${escapeHtml(i.expiry)}</td>
+      <td class="muted">${escapeHtml(i.explanation)}</td>
+    </tr>`;
+    }).join("");
+    return `
+    <div class="grid grid-2">
+      <article class="card">
+        <div class="eyebrow">The principle this page exists for</div>
+        <h2>AI can suggest what to remember. It does not get to decide.</h2>
+        <p>Extraction is only the first step. The platform assesses provenance, explicitness, confidence, freshness, sensitivity, consent and correctability before activation.</p>
+      </article>
+      <article class="card">
+        <div class="eyebrow">A deliberate choice</div>
+        <h3>More memory is not the goal</h3>
+        <p>The goal is context useful, trustworthy and governable enough to improve a real experience. Low-quality memory compounds into product debt and trust debt.</p>
+      </article>
+    </div>
+    <div class="section-label">Readiness dimensions</div>
+    <div class="grid grid-4">
+      ${[
+        ["Provenance", "Can we explain where this came from?"],
+        ["Confidence", "How likely is it to be true?"],
+        ["Freshness", "Is it still relevant now?"],
+        ["Consent / purpose", "May this context be used here?"],
+        ["Sensitivity", "Could persistence or inference create harm?"],
+        ["Explainability", "Can we tell the customer why we think this?"],
+        ["Correctability", "Can the customer change or remove it?"],
+        ["Activation fit", "Which channels and purposes may consume it?"]
+    ].map(([a, b]) => `<article class="card"><h3>${a}</h3><p>${b}</p></article>`).join("")}
+    </div>
+    <div class="section-label">How the readiness score is put together</div>
+    <div class="grid grid-2">
+      <article class="card"><h3>A weighted rubric, shown in the open</h3><p>Each item scores out of 100: up to 22 points for confidence, 20 for being explicitly stated (inferred items earn a share of 15, scaled by confidence), 18 for having a recorded source, 15 for freshness within a week, 15 for clear consent, and 10 for being customer-correctable. Medium sensitivity costs 6 points; high sensitivity costs 25. The weights say what the product values: an explicit, fresh, consented statement beats a confident inference every time.</p></article>
+      <article class="card"><h3>A proposal, not a measurement</h3><p>These weights are a starting position to argue with, which is the point of writing them down. In a real build they would be pressure-tested with Privacy, Legal and Data Science, then tuned against observed correction and complaint rates. The gate statuses sit on top as hard rules: restricted consent or high sensitivity blocks activation outright, whatever the score says.</p></article>
+    </div>
+    <div class="section-label">Context quality & activation gate</div>
+    <div class="table-wrap"><table><thead><tr><th>Candidate context</th><th>Score</th><th>Status</th><th>Confidence</th><th>Consent</th><th>Sensitivity</th><th>Expiry</th><th>Product rationale</th></tr></thead><tbody>${rows}</tbody></table></div>
+
+    <div class="section-label">Privacy by design: how the model maps to regulation</div>
+    <div class="grid grid-3">
+      <article class="card"><h3>Purpose limitation & minimisation</h3><p>Purpose-declared retrieval is GDPR purpose limitation and data minimisation expressed as an API contract: consumers receive only context that is eligible for the stated use.</p></article>
+      <article class="card"><h3>Rights built in, not bolted on</h3><p>Correct and Forget are the rights to rectification and erasure as product features. Explainability supports transparency obligations and automated-decision scrutiny.</p></article>
+      <article class="card"><h3>Lawful basis is a design input</h3><p>Each context type and purpose maps to a lawful basis (consent, contract or legitimate interest), decided with Privacy and Legal during discovery rather than retrofitted after build.</p></article>
+    </div>
+    <div class="notice" style="margin-top:12px"><strong>The riskiest inferences are the accurate ones.</strong> Dietary and purchase patterns can reveal religion, health conditions or pregnancy: special category data under GDPR, worked out from innocuous signals. So the platform keeps a prohibited-inference list and screens sensitivity before anything persists. Some context is never created, however confident the model is.</div>
+  `;
+}
+function activationEligible(channel) {
+    return contextItems.filter(i => i.channels.includes(channel) && ["READY", "USE WITH CAUTION"].includes(statusFor(i)));
+}
+function activatePage() {
+    const channels = ["Web", "App", "Assistant", "Store", "CRM"];
+    const eligible = activationEligible(currentChannel);
+    const contextHtml = eligible.length ? eligible.map(i => `<div class="rec-card"><strong>${escapeHtml(i.value)}</strong><div class="small muted">${escapeHtml(i.type)}, ${Math.round(i.confidence * 100)}% confidence, expires: ${escapeHtml(i.expiry)}</div></div>`).join("") : `<div class="notice">No context is eligible for this channel under the current policy.</div>`;
+    const experienceCopy = {
+        Web: "Prioritise vegetarian lunch inspiration and suppress alcohol-related personalisation. Use short-term packed-lunch intent while it is fresh.",
+        App: "Surface a lightweight packed-lunch collection and maintain the customer’s explicit dietary preference across sessions.",
+        Assistant: "Continue the conversation without asking the customer to restate durable preferences; treat weak inferences as suggestions, not facts.",
+        Store: "Use only high-confidence, low-sensitivity context that has a clear in-store purpose. Avoid surfacing household or weak inference data to colleagues by default.",
+        CRM: "Respect durable explicit constraints and preferences where they are relevant to service; exclude short-lived shopping intent from durable CRM profile fields."
+    };
+    return `
+    <div class="notice" style="margin-bottom:14px"><strong>Who this page is for:</strong> activation is the moment a product team uses remembered detail to change what a customer sees. The left panel shows what each channel's team is allowed to consume under policy. The right panel shows what the customer would notice as a result. Pick a channel to compare.</div>
+    <div class="channel-tabs">${channels.map(c => `<button class="channel-btn ${c === currentChannel ? "active" : ""}" data-channel="${c}">${c}</button>`).join("")}</div>
+    <div class="grid grid-2">
+      <article class="card activation-preview">
+        <div class="eyebrow">What this channel is allowed to see</div>
+        <h3>Eligible for ${currentChannel}</h3>
+        <div style="margin-top:10px">${contextHtml}</div>
+      </article>
+      <article class="card activation-preview">
+        <div class="eyebrow">What changes for the customer</div>
+        <div class="preview-shell" style="margin-top:10px">
+          <div class="preview-head">${currentChannel} view, synthetic experience</div>
+          <div class="preview-body">
+            <h3>What changes because we know more?</h3>
+            <p>${experienceCopy[currentChannel]}</p>
+            <div class="rec-card"><strong>Why this is different</strong><div class="small muted">The platform serves reusable context and policy decisions. The consuming product still owns its UX, ranking logic and experiment design.</div></div>
+          </div>
+        </div>
+      </article>
+    </div>
+    <div class="section-label">Customer controls</div>
+    <div class="grid grid-3">
+      <article class="card"><h3>Correct</h3><p>Customers can change explicit preferences and challenge incorrect context.</p><button class="secondary" style="margin-top:12px">Edit preference</button></article>
+      <article class="card"><h3>Forget</h3><p>Context that is not legally required can be removed, with downstream propagation where appropriate.</p><button class="secondary" style="margin-top:12px">Forget context</button></article>
+      <article class="card"><h3>Explain</h3><p>Where inference affects an experience, the organisation should be able to explain the signal and its source.</p><button class="secondary" style="margin-top:12px">Why am I seeing this?</button></article>
+    </div>
+  `;
+}
+function platform() {
+    const apiItems = activationEligible(currentChannel).map(i => ({
+        type: i.type.toLowerCase(),
+        value: i.value,
+        subject: i.subject,
+        source: i.source,
+        explicit: i.explicit,
+        confidence: i.confidence,
+        expiry: i.expiry,
+        editable: i.editable
+    }));
+    const api = JSON.stringify({ customerId: "demo-1042", purpose: `${currentChannel.toLowerCase()}-personalisation`, context: apiItems }, null, 2);
+    return `
+    <div class="card">
+      <div class="eyebrow">Reference architecture</div>
+      <h2>Separate context creation, policy and activation</h2>
+      <p>Read it top to bottom: the same touchpoints appear twice, once as sources of signals and once as consumers of what the platform remembers. Everything in between is the product. The separation means channel teams never recreate identity resolution, inference rules or governance in their own code.</p>
+      <div class="arch" style="margin-top:18px">
+        <div class="arch-cap">1. Where signals come from: the places a customer interacts with the retailer</div>
+        <div class="arch-row">
+          ${["Web", "App", "Store", "Service", "Assistant", "Transactions"].map(x => `<div class="arch-box">${x}</div>`).join("")}
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-cap">2. Turning raw signals into candidate memories, tied to the right person</div>
+        <div class="arch-row">
+          <div class="arch-box core">Identity & household resolution</div><div class="arch-box core">Explicit signals</div><div class="arch-box core">Behavioural signals</div><div class="arch-box core">LLM extraction</div><div class="arch-box core">ML inference</div><div class="arch-box core">Consent & purpose</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-cap">3. The platform itself: where candidate memories are structured, scored and governed</div>
+        <div class="arch-row">
+          <div class="arch-box core">Context schema</div><div class="arch-box core">Provenance</div><div class="arch-box core">Confidence</div><div class="arch-box core">Freshness / expiry</div><div class="arch-box core">Policy engine</div><div class="arch-box core">Quality & evaluation</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-cap">4. How product teams get access, with policy applied on the way out</div>
+        <div class="arch-row">
+          <div class="arch-box">Context API</div><div class="arch-box">Events</div><div class="arch-box">Batch export</div><div class="arch-box">SDK / client</div><div class="arch-box">Audit</div><div class="arch-box">Experiment telemetry</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-cap">5. The experiences that use it: the same touchpoints from row one, now acting on what is known</div>
+        <div class="arch-row">
+          ${["Web personalisation", "App", "Recommendations", "Assistant memory", "Store tools", "CRM / service"].map(x => `<div class="arch-box">${x}</div>`).join("")}
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Identity is the first dependency</div>
+    <div class="grid grid-3">
+      <article class="card"><h3>Authenticated vs anonymous</h3><p>Durable context attaches only to resolved, authenticated identities. Anonymous sessions get session-scoped context that is discarded or reconciled on sign-in, never silently merged.</p></article>
+      <article class="card"><h3>Individual vs household</h3><p>“My daughter is vegetarian” is household context with its own subject, scope and confirmation rules. Collapsing household members into one profile corrupts both personalisation and consent.</p></article>
+      <article class="card"><h3>Identity quality bounds context quality</h3><p>Match confidence in identity resolution propagates into context confidence. The platform inherits the identity graph rather than rebuilding it. That is a scope decision, not an accident.</p></article>
+    </div>
+    <div class="section-label">Context API contract</div>
+    <div class="grid grid-2">
+      <article class="card">
+        <div class="eyebrow">Request</div>
+        <h3>GET /v1/customers/demo-1042/context</h3>
+        <div class="controls"><label class="small muted">Purpose/channel</label><select id="apiChannel">${["Web", "App", "Assistant", "Store", "CRM"].map(c => `<option ${c === currentChannel ? "selected" : ""}>${c}</option>`).join("")}</select></div>
+        <div class="notice" style="margin-top:14px">The caller requests context for a declared purpose. The platform returns only eligible context, rather than exposing a raw customer profile.</div>
+      </article>
+      <article class="card"><div class="eyebrow">Response</div><div class="code">${escapeHtml(api)}</div></article>
+    </div>
+  `;
+}
+function roadmap() {
+    const items = [
+        ["Explicit preferences", 5, 5, 5, 1, "MVP"],
+        ["Recent intent", 5, 5, 4, 2, "MVP"],
+        ["Context schema + API", 4, 5, 5, 2, "MVP"],
+        ["Provenance / expiry", 4, 5, 5, 2, "MVP"],
+        ["Customer correction", 5, 4, 5, 2, "MVP"],
+        ["LLM intent extraction", 4, 4, 4, 3, "Next"],
+        ["Inferred preferences", 3, 4, 3, 4, "Later"],
+        ["Real-time behavioural context", 4, 5, 3, 5, "Later"],
+        ["Recommendation integration", 5, 4, 4, 4, "Next"],
+        ["Cross-channel orchestration", 5, 5, 3, 5, "Later"]
+    ];
+    return `
+    <div class="roadmap">
+      <div class="horizon"><div class="h-num">Horizon 1</div><h3>Trusted foundation</h3><ul><li>Context schema</li><li>Explicit preferences</li><li>Recent intent</li><li>Provenance & expiry</li><li>Consent policy</li><li>Context API</li><li>Two activation use cases</li></ul><div class="outcome"><strong>Outcome:</strong> product teams can safely consume reusable context.</div></div>
+      <div class="horizon"><div class="h-num">Horizon 2</div><h3>Context intelligence</h3><ul><li>Intent extraction</li><li>Conversational memory</li><li>Confidence scoring</li><li>Freshness / decay</li><li>Inference evaluation</li></ul><div class="outcome"><strong>Outcome:</strong> richer context without degrading trust.</div></div>
+      <div class="horizon"><div class="h-num">Horizon 3</div><h3>Connected personalisation</h3><ul><li>Recommendations</li><li>Web / app activation</li><li>Assistant memory</li><li>Store journeys</li><li>Experiment framework</li></ul><div class="outcome"><strong>Outcome:</strong> measurable cross-channel relevance.</div></div>
+      <div class="horizon"><div class="h-num">Horizon 4</div><h3>Learning context platform</h3><ul><li>Correction signals</li><li>Outcome feedback</li><li>Model evaluation</li><li>Context usefulness scores</li><li>Automated policy checks</li></ul><div class="outcome"><strong>Outcome:</strong> the platform learns which context actually creates value.</div></div>
+    </div>
+
+    <div class="section-label">MVP prioritisation</div>
+    <div class="table-wrap"><table><thead><tr><th>Capability</th><th>Customer value</th><th>Platform reuse</th><th>Data readiness</th><th>Complexity</th><th>Decision</th></tr></thead><tbody>
+      ${items.map(([name, cv, pr, dr, c, d]) => `<tr><td><strong>${name}</strong></td><td>${cv}/5</td><td>${pr}/5</td><td>${dr}/5</td><td>${c}/5</td><td>${pill(String(d), d === "MVP" ? "pill-green" : d === "Next" ? "pill-blue" : "pill-gray")}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="section-label">How to read the scores</div>
+    <div class="grid grid-2">
+      <article class="card"><h3>The scale</h3><p>Every column runs 1 to 5, scored relative to the other candidates rather than against an absolute yardstick. Customer value: 5 means a clear, measurable benefit in a priority journey. Platform reuse: 5 means many teams would consume it. Data readiness: 5 means the inputs exist today with known quality. Complexity: 5 means the hardest build, so lower is better in that column only.</p></article>
+      <article class="card"><h3>How a decision falls out</h3><p>MVP needs high value, high reuse and high readiness with manageable complexity. High value but low data readiness lands in Next, because the data work comes first. Anything whose value depends on the foundation already existing lands in Later, however exciting it looks. The scores force the argument into the open; the decision column is still a judgement, not an average.</p></article>
+    </div>
+    <div class="notice" style="margin-top:12px"><strong>Product choice:</strong> the MVP deliberately excludes a recommendation engine. The foundation should first prove that multiple products can safely consume high-quality context. Recommendation is an activation use case, not the platform itself.</div>
+  `;
+}
+function measure() {
+    return `
+    <div class="hero">
+      <article class="card statement"><div class="eyebrow">North star</div><div class="hero-quote">% of eligible interactions improved by <strong>trusted reusable context</strong></div><p>This combines adoption and customer value. It avoids optimising for storage volume or number of inferred memories.</p></article>
+      <article class="card"><div class="eyebrow">The guardrail</div><h3>Trust must not fall as relevance rises</h3><p>Every outcome metric is paired with trust, correction, privacy and quality measures so personalisation cannot “win” by becoming intrusive.</p></article>
+    </div>
+    <div class="grid grid-2">
+      <article class="card okr"><h3>O1. Make the platform the easiest way to consume customer understanding, within two quarters of MVP launch</h3><ul><li>KR1: 2 production consumers live by end of Q2, 5 by end of Q4</li><li>KR2: median time-to-first-context under 10 working days</li><li>KR3: at least 95% of policy-aware retrievals succeed first time</li><li>KR4: p95 API latency under 150ms at launch volumes</li></ul></article>
+      <article class="card okr"><h3>O2. Demonstrate measurable customer value in two live journeys by end of Q3</h3><ul><li>KR1: at least 5% uplift in task completion or relevance versus a holdout control</li><li>KR2: repetition of already-known explicit preferences down 30% in assistant journeys</li><li>KR3: cross-channel continuation rate up 10% for context-served sessions</li><li>KR4: both journeys show a statistically significant win at 95% confidence</li></ul></article>
+      <article class="card okr"><h3>O3. Make quality visible and hold it above activation thresholds every quarter</h3><ul><li>KR1: stale-context rate below 5% of the active store</li><li>KR2: provenance recorded on at least 98% of items</li><li>KR3: customer correction rate for explicit context under 2%</li><li>KR4: inference precision at or above 90% before any inferred type activates</li></ul></article>
+      <article class="card okr"><h3>O4. Grow personalisation without any measurable loss of customer trust, reviewed monthly</h3><ul><li>KR1: personalisation complaints flat or falling versus pre-launch baseline</li><li>KR2: opt-out rate below 1% of customers served context-driven experiences</li><li>KR3: 100% of activated inferred context carries a full audit trail</li><li>KR4: zero policy violations reach production in the quarter</li></ul></article>
+    </div>
+    <div class="notice" style="margin-top:12px">The targets above are deliberately illustrative. For a product this early, the shape of the measure matters more than the number: each would be baselined during discovery and reset once real volumes exist. What should not change is that every objective stays time-bound and every key result stays countable.</div>
+    <div class="section-label">Metric families</div>
+    <div class="grid grid-4">
+      <article class="card"><h3>Adoption</h3><p>Consumers, API calls, active integrations, time-to-integrate.</p></article>
+      <article class="card"><h3>Context quality</h3><p>Accuracy, freshness, provenance coverage, stale rate, correction rate.</p></article>
+      <article class="card"><h3>Customer impact</h3><p>Relevance, task completion, engagement, recommendation acceptance, conversion where appropriate.</p></article>
+      <article class="card"><h3>Trust & performance</h3><p>Opt-outs, complaints, explanations, latency, availability, retrieval success.</p></article>
+    </div>
+  `;
+}
+function adoption() {
+    return `
+    <div class="hero">
+      <article class="card statement">
+        <div class="eyebrow">The honest risk</div>
+        <div class="hero-quote">Most internal platforms die waiting for <strong>their second customer</strong>.</div>
+        <p>The riskiest assumption here is not technical. It is that busy product teams will choose shared context over the bespoke customer logic they already own. So adoption gets run as a product in its own right, with its own funnel, friction analysis and roadmap.</p>
+      </article>
+      <article class="card">
+        <div class="eyebrow">Where this sits in the stack</div>
+        <h3>Build, buy or extend?</h3>
+        <p>CDPs and the existing loyalty stack already unify customer data for marketing activation. This platform does not replace them. It adds the layer they lack: governed, explainable, decaying context with policy-aware retrieval for product experiences. Extend what exists for identity and raw signals; build the context, policy and activation layer.</p>
+      </article>
+    </div>
+
+    <div class="section-label">The first three adoption moves</div>
+    <div class="grid grid-3">
+      <article class="card"><div class="strategy-num">01</div><h3>Two lighthouse consumers</h3><p>Hand-pick two teams with a measurable journey, real pain and appetite: one web or app team, one assistant or service team. Co-build their integration, instrument the uplift, and turn the result into the case study that sells the next five consumers.</p></article>
+      <article class="card"><div class="strategy-num">02</div><h3>Make integration boring</h3><p>Time-to-first-context under two weeks: one well-documented API, sandbox customers, copy-paste examples, clear policy errors and a published SLA. Every hour of integration friction is adoption lost to “we will just build it ourselves”.</p></article>
+      <article class="card"><div class="strategy-num">03</div><h3>Operate like a product, govern like a utility</h3><p>A lightweight context council of Product, Data Science, Privacy and Legal owns schema changes, new inference types and the prohibited list. Consuming teams get stability; governance decisions get one front door.</p></article>
+    </div>
+
+    <div class="section-label">Top risks and how the product answers them</div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation built into the product</th></tr></thead><tbody>
+        <tr><td><strong>Teams keep building bespoke customer logic</strong></td><td>High</td><td>Platform fails quietly</td><td>Lighthouse strategy, integration DX as a KPI, and executive sponsorship tied to reuse OKRs rather than mandates alone.</td></tr>
+        <tr><td><strong>An inference incident damages customer trust</strong></td><td>Medium</td><td>Severe and public</td><td>Prohibited-inference list, sensitivity gate before persistence, confirmation for durable inference, full audit trail and explainability.</td></tr>
+        <tr><td><strong>Identity resolution is weaker than assumed</strong></td><td>Medium</td><td>Context attached to wrong people</td><td>Identity match confidence propagates into context confidence; low-confidence identities cannot carry durable context.</td></tr>
+        <tr><td><strong>Context goes stale and erodes relevance</strong></td><td>High</td><td>Gradual value decay</td><td>Expiry and decay as schema defaults, stale-rate as a first-class metric, correction loops from customers and consumers.</td></tr>
+        <tr><td><strong>Privacy review becomes a late-stage blocker</strong></td><td>Medium</td><td>Roadmap slips</td><td>Privacy and Legal in discovery, lawful-basis mapping per context type, DPIA started with the MVP rather than before launch.</td></tr>
+      </tbody></table>
+    </div>
+  `;
+}
+function decisions() {
+    const d = [
+        ["Persist inferred context automatically?", "No, not by default.", "Incorrect durable inference creates disproportionate trust risk. Start with confidence thresholds, expiry and confirmation for durable context.", "Less immediate richness; stronger trust and cleaner learning."],
+        ["Include a recommendation engine in MVP?", "No.", "The platform must first prove reusable, policy-aware context across multiple consumers. Recommendations are one activation use case.", "Slower route to a flashy demo; stronger platform proof."],
+        ["Expose the full customer profile to consumers?", "No.", "Consumers request context for a declared purpose and receive only eligible fields. This supports minimisation and reduces coupling.", "More policy complexity in the platform; simpler and safer downstream products."],
+        ["Use conversational memory everywhere?", "Only where continuity creates measurable value.", "Conversation history is not automatically useful context. Extracted memory needs a lifecycle, purpose and expiry.", "Fewer memories stored; higher signal quality."],
+        ["Let AI decide what to remember?", "AI proposes; policy and product rules decide.", "The valuable capability is governed memory, not extraction alone.", "Requires explicit evaluation and human/policy controls."],
+        ["Build a new platform, or buy a CDP?", "Extend for identity and signals; build context, policy and activation.", "CDPs unify data for marketing activation. They do not provide typed, decaying, explainable context with purpose-aware retrieval for product experiences, and that gap is exactly what this platform exists to close.", "Integration work with the existing stack; no duplicate identity investment and a defensible scope."],
+        ["Infer everything the data supports?", "No. Some context must never be created.", "Accurate inference can manufacture special category data (health, religion, pregnancy) from innocuous signals. A prohibited-inference list and sensitivity gate apply before persistence, regardless of confidence.", "Leaves some predictive value unused; prevents the single most damaging class of trust incident."],
+        ["Optimise for one channel first?", "Yes, but design for reuse.", "A thin vertical slice proves value and integration while preserving platform contracts for additional consumers.", "Avoids platform overbuild while keeping long-term architecture credible."]
+    ];
+    return `
+    <div class="grid grid-2">
+      ${d.map(([q, a, r, t]) => `<article class="decision"><h3>${q}</h3><div class="decision-row"><div class="label">Decision</div><div><strong>${a}</strong></div></div><div class="decision-row"><div class="label">Why</div><div class="muted">${r}</div></div><div class="decision-row"><div class="label">Trade-off</div><div class="muted">${t}</div></div></article>`).join("")}
+    </div>
+    <div class="section-label">What this demonstrates</div>
+    <div class="grid grid-3">
+      <article class="card"><h3>Discovery</h3><p>Problem framing, opportunities, hypotheses, assumptions and evidence before solutioning.</p></article>
+      <article class="card"><h3>Platform product management</h3><p>Internal consumers, APIs, contracts, policy, adoption, service quality and cross-channel reuse.</p></article>
+      <article class="card"><h3>AI product judgement</h3><p>AI readiness, inference thresholds, human confirmation, transparency, expiry and evaluation.</p></article>
+      <article class="card"><h3>Strategy & roadmap</h3><p>Vision, strategic pillars, MVP choices, sequencing and long-term capability horizons.</p></article>
+      <article class="card"><h3>Data thinking</h3><p>Identity, provenance, confidence, freshness, schema, context lifecycle and activation constraints.</p></article>
+      <article class="card"><h3>Outcome focus</h3><p>North Star, adoption, relevance, trust, product OKRs and business/customer impact.</p></article>
+    </div>
+  `;
+}
+function extractCandidateContext(text) {
+    const s = text.toLowerCase();
+    const out = [];
+    if (s.includes("vegetarian"))
+        out.push({ type: "Preference", value: s.includes("daughter") ? "Daughter is vegetarian" : "Vegetarian", status: s.includes("daughter") ? "NEEDS CONFIRMATION" : "READY", reason: s.includes("daughter") ? "Household-member context needs scoping and confirmation before durable persistence." : "Explicit customer preference." });
+    if (s.includes("birthday"))
+        out.push({ type: "Intent", value: "Planning a birthday event", status: "READY", reason: "Useful short-term mission; should expire after the event." });
+    if (s.includes("strawberr"))
+        out.push({ type: "Preference", value: "Daughter likes strawberries", status: "NEEDS CONFIRMATION", reason: "Third-party preference; low risk but should be scoped to the right subject and have an expiry/review policy." });
+    if (s.includes("don't suggest alcohol") || s.includes("do not suggest alcohol") || s.includes("no alcohol"))
+        out.push({ type: "Constraint", value: "Do not recommend alcohol", status: "READY", reason: "Explicit negative preference that can safely constrain eligible experiences." });
+    if (s.includes("cheap") || s.includes("inexpensive") || s.includes("budget"))
+        out.push({ type: "Intent", value: "Seeking lower-cost options now", status: "READY", reason: "Short-term stated intent. Do not automatically convert it into a durable socioeconomic inference." });
+    if (!out.length)
+        out.push({ type: "Unknown", value: "No supported candidate context detected", status: "DO NOT PERSIST", reason: "The prototype avoids fabricating context when evidence is weak." });
+    return out;
+}
+function attachEvents() {
+    if (currentPage === "customer") {
+        const extract = document.querySelector("#extractBtn");
+        const clear = document.querySelector("#clearExtract");
+        extract?.addEventListener("click", () => {
+            const text = document.querySelector("#utterance")?.value || "";
+            const results = extractCandidateContext(text);
+            const box = document.querySelector("#extractResults");
+            if (box)
+                box.innerHTML = results.map(r => `<div class="list-item"><span class="dot"></span><div><strong>${escapeHtml(r.type)}: ${escapeHtml(r.value)}</strong><span>${statusPill(r.status)} <span style="margin-left:6px">${escapeHtml(r.reason)}</span></span></div></div>`).join("");
+        });
+        clear?.addEventListener("click", () => {
+            const area = document.querySelector("#utterance");
+            if (area)
+                area.value = "";
+            const box = document.querySelector("#extractResults");
+            if (box)
+                box.innerHTML = "";
+        });
+    }
+    if (currentPage === "activate") {
+        document.querySelectorAll(".channel-btn").forEach(b => b.addEventListener("click", () => {
+            currentChannel = b.dataset.channel;
+            render();
+        }));
+    }
+    if (currentPage === "platform") {
+        document.querySelector("#apiChannel")?.addEventListener("change", e => {
+            currentChannel = e.target.value;
+            render();
+        });
+    }
+}
+function render() {
+    renderNav();
+    $("#sectionEyebrow").textContent = headings[currentPage].eyebrow;
+    $("#sectionTitle").textContent = headings[currentPage].title;
+    const pageFns = {
+        overview,
+        discover,
+        strategy,
+        customer,
+        context: contextPage,
+        ai: aiPage,
+        activate: activatePage,
+        platform,
+        roadmap,
+        measure,
+        adoption,
+        decisions
+    };
+    if (!UNLOCKED.includes(currentPage)) {
+        $("#content").innerHTML = `
+        <div class="hero"><article class="card statement">
+          <div class="eyebrow">Not released yet</div>
+          <div class="hero-quote">This chapter is <strong>still to come</strong>.</div>
+          <p>The lab is being released as a series. This chapter unlocks with a later post; the chapters already open are complete and fully interactive. Follow along on LinkedIn to catch each release.</p>
+        </article></div>`;
+        return;
+    }
+    $("#content").innerHTML = pageFns[currentPage]();
+    attachEvents();
+}
+$("#openBrief").addEventListener("click", () => $("#briefDialog").showModal());
+$("#closeBrief").addEventListener("click", () => $("#briefDialog").close());
+$("#resetDemo").addEventListener("click", () => {
+    contextItems = JSON.parse(JSON.stringify(baseContext));
+    currentChannel = "Web";
+    currentPage = "overview";
+    render();
+});
+render();
+
+</script>
+</body>
+</html>
